@@ -220,14 +220,29 @@ def sparse_tuple_from(sequences, dtype=np.float32):
     return indices, values, shape    
 
 #---------------------------- word vector to text ----------------------------#
-def sparse_tuple2texts_ch(tuple, words):
+SPACE_TOKEN = '<space>'
+SPACE_INDEX = 0
+FIRST_INDEX = ord('a') - 1 # ascii 
+
+def sparse_tuple2texts_ch(tuples, words):
+    indices = tuples[0]
+    values = tuples[1]
     
+    results = ['']*tuples[2][0]
+    
+    for i in range(len(indices)):
+        index = indices[i][0]
+        c = values[i]
+        c = ' ' if c == SPACE_INDEX else words[c]
+        results[index] = results[index] + c
 
+    return results
+    
+def ndarray2text_ch(value, words):
+    results = ''
 
+    for i in range(len(value)):
+        results += words[value[i]]
 
-
-
-
-
-
+    return results.replace('`', ' ')
 
