@@ -6,7 +6,6 @@ module task: get data
 @author: daijun.chen
 """
 
-import numpy as np
 from collections import Counter 
 from auxfunctions import get_wavs_labels
 from auxfunctions import pad_sequences
@@ -36,8 +35,8 @@ words_size = len(words) # 2666 words in vocabulary
 word_num_map = dict(zip(words, range(words_size)))
 
 #--------------------------- take a batch of samples -------------------------#
-n_input = 26
-n_context = 9  # context number tuning parameter 
+num_input = 26
+num_context = 9  # context number tuning parameter 
 batch_size = 8 # tuning parameter
 
 def next_batch(labels, start_idx=0, batch_size=1, wav_files=wav_files):
@@ -47,7 +46,7 @@ def next_batch(labels, start_idx=0, batch_size=1, wav_files=wav_files):
     txt_labels = [labels[i] for i in idx_list]
     wav_files = [wav_files[i] for i in idx_list]
     (source, audio_len, target, transcript_len) = get_audio_and_transcriptch(None,
-                                                     wav_files, n_input, n_context,
+                                                     wav_files, num_input, num_context,
                                                      word_num_map, txt_labels)
     
     start_idx += batch_size 
@@ -62,6 +61,4 @@ def next_batch(labels, start_idx=0, batch_size=1, wav_files=wav_files):
     
     return start_idx, source, source_lengths, sparse_labels
 
-next_batch(labels, batch_size=2)        
-    
 
