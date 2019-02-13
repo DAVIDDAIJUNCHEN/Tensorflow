@@ -7,12 +7,13 @@ module task: Build model
 """
 
 import tensorflow as tf
-from input_data import n_input, n_context
+from tensorflow.python.ops import ctc_ops
+from input_data import num_input, num_context, words_size
 
 tf.reset_default_graph()
 
 #--------------------------- build placeholder -------------------------------#
-MFCC_feature = n_input + 2*n_input*n_context
+MFCC_feature = num_input + 2*num_input*num_context
 
 # [batch_size, max_len, MFCC_features]
 input_tensor = tf.placeholder(tf.float32, [None, None, MFCC_feature], name='input')
@@ -32,7 +33,10 @@ def variable_on_cpu(name, shape, initializer):
 
     return var
 
+
 #--------------------------- build BiRNN model -------------------------------#
+keep_dropout_rate = 0.95
+
 # batch_x is the input_tensor #
 def BiRNN(batch_x, seq_length, num_input, num_context, num_character, keep_dropout):
     # [batch_size, max_len, MFCC_features] #
@@ -53,32 +57,30 @@ def BiRNN(batch_x, seq_length, num_input, num_context, num_character, keep_dropo
     num_hidden_3 = 2*1024
     num_cell_dim = 2014 # 4th layer cell dimensions
     num_hidden_5 = 1024
-
-    
-    keep_dropout_rate = 0.95
+   
     relu_clip = 20    
         
     # 1st layer
     with tf.name_scope('fc1'):
-        b1 = variable_on_cpu('b1', shape=[num_hidden_1], tf.random_normal_initializer(stddev=b_stddev))
-        h1 = variable_on_cpu('h1', shape=[MFCC_feature, num_hidden_1], tf.random_normal_initializer(stddev=h_stddev))
+        b1 = variable_on_cpu('b1', [num_hidden_1], tf.random_normal_initializer(stddev=b_stddev))
+        h1 = variable_on_cpu('h1', [MFCC_feature, num_hidden_1], tf.random_normal_initializer(stddev=h_stddev))
         z1 = tf.matmul(batch_x, h1) + b1
         layer_1 = tf.minimum(tf.nn.relu(z1), relu_clip)
         layer_1 = tf.nn.dropout(layer_1, keep_dropout)
     
     # 2nd layer
     with tf.name_scope('fc2'):
-        b2 = variable_on_cpu('b2', shape=[num_hidden_2], tf.random_normal_initializer(stddev=b_stddev))
-        h2 = variable_on_cpu('h2', shape=[num_hidden_1, num_hidden_2], tf.random_normal_initializer(stddev=h_stddev))
+        b2 = variable_on_cpu('b2', [num_hidden_2], tf.random_normal_initializer(stddev=b_stddev))
+        h2 = variable_on_cpu('h2', [num_hidden_1, num_hidden_2], tf.random_normal_initializer(stddev=h_stddev))
         z2 = tf.matmul(layer_1, h2) + b2 
         layer_2 = tf.minimum(tf.nn.relu(z2), relu_clip)
         layer_2 = tf.nn.dropout(layer_2, keep_dropout)
         
     # 3rd layer
     with tf.name_scope('fc3'):
-        b3 = variable_on_cpu('b3', shape=[num_hidden_3], tf.random_normal_initializer(stddev_b_stddev))
-        h3 = variable_on_cpu('h3', shape=[num_hidden_2, num_hidden_3], tf.random_normal_initializer(stddev=h_stddev))
-        z3 = tf.matmul(layer_2, h3) + h3
+        b3 = variable_on_cpu('b3', [num_hidden_3], tf.random_normal_initializer(stddev=b_stddev))
+        h3 = variable_on_cpu('h3', [num_hidden_2, num_hidden_3], tf.random_normal_initializer(stddev=h_stddev))
+        z3 = tf.matmul(layer_2, h3) + b3
         layer_3 = tf.minimum(tf.nn.relu(z3), relu_clip)
         layer_3 = tf.nn.dropout(layer_3, keep_dropout)
         
@@ -97,17 +99,17 @@ def BiRNN(batch_x, seq_length, num_input, num_context, num_character, keep_dropo
         
         outputs, outputs_states = tf.nn.bidirectional_dynamic_rnn(lstm_fw_cell, lstm_bw_cell, 
                                                                   inputs=layer_3, dtype=tf.float32,
-                                                                  time_major=True, seq_length=seq_length)        
+                                                                  time_major=True, sequence_length=seq_length)        
         outputs = tf.concat(outputs, 2)
         outputs = tf.reshape(outputs, [-1, 2*num_cell_dim])
         
     # 5th layer
     with tf.name_scope('fc5'):
         num_hidden_4 = 2*num_cell_dim
-        b5 = variable_on_cpu('b5', [num_hidden_5], tf.random_noraml_initializer(stddev=b_stddev))
+        b5 = variable_on_cpu('b5', [num_hidden_5], tf.random_normal_initializer(stddev=b_stddev))
         h5 = variable_on_cpu('h5', [num_hidden_4, num_hidden_5], tf.random_normal_initializer(stddev=h_stddev))
         z5 = tf.matmul(outputs, h5) + b5
-        layer_5 = tf.minmum(tf.nn.relu(z5), relu_clip)
+        layer_5 = tf.minimum(tf.nn.relu(z5), relu_clip)
         layer_5 = tf.nn.dropout(layer_5, keep_dropout)
         
         
@@ -120,4 +122,22 @@ def BiRNN(batch_x, seq_length, num_input, num_context, num_character, keep_dropo
     layer_6 = tf.reshape(layer_6, [-1, batch_x_shape[0], num_character])
     
     return layer_6
+        
+#-------------------------- define loss and optimizer ------------------------#        
+logits = BiRNN(input_tensor, tf.to_int64(seq_length), num_input, num_context, words_size+1, keep_dropout)
+
+avg_loss = tf.reduce_mean(ctc_ops.ctc_loss(targets, logits, seq_length))
+
+learning_rate = 0.001
+optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate).minimize(avg_loss)
+
+#-------------------------- 
+with tf.name_scope('decode'):
+    decoded, log_prob = ctc_ops.ctc_beam_search_decoder(logits, seq_length, merge_repeated=False)
+        
+    
+with tf.name_scope('accuracy'):
+    distance = tf.edit_distance(tf.cast(decoded[0], tf.int32), targets)
+    label_error_rate = tf.reduce_mean(distance, name='label_error_rate')
+
         
