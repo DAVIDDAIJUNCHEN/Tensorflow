@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 """
 Created on Tue Feb 12 16:05:55 2019
-
+Project task: Build ASR with BiRNN
+module task: train BiRNN model 
 @author: daijun.chen
 """
 
@@ -56,17 +57,17 @@ with tf.Session() as sess:
     
             if (batch+1)%20 == 0:
                 print('loop: ', batch, 'train cost:', train_loss/(batch+1))
-                feed2 = {input_tensor: source, targets: sparse_labels,seq_length: source_lengths,keep_dropout:1.0}
+                feed2 = {input_tensor: source, targets: sparse_labels,seq_length: source_lengths, keep_dropout:1.0}
 
-                d,train_ler = sess.run([decoded[0],label_error_rate], feed_dict=feed2)
-                dense_decoded = tf.sparse_tensor_to_dense( d, default_value=-1).eval(session=sess)
-                dense_labels = sparse_tuple_to_texts_ch(sparse_labels, words)
+                d,train_ler = sess.run([decoded[0], label_error_rate], feed_dict=feed2)
+                dense_decoded = tf.sparse_tensor_to_dense(d, default_value=-1).eval(session=sess)
+                dense_labels = sparse_tuple2texts_ch(sparse_labels, words)
             
                 counter =0
                 print('Label err rate: ', train_ler)
                 for orig, decoded_arr in zip(dense_labels, dense_decoded):
                 # convert to strings
-                    decoded_str = ndarray_to_text_ch(decoded_arr,words)
+                    decoded_str = ndarray2text_ch(decoded_arr,words)
                     print(' file {}'.format( counter))
                     print('Original: {}'.format(orig))
                     print('Decoded:  {}'.format(decoded_str))
