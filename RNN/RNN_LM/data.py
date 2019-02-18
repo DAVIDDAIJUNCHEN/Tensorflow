@@ -7,7 +7,6 @@ module: preprocess data
 """
 
 import tensorflow as tf
-import numpy as np
 from preprocess import get_ch_label, get_ch_label_vec
 from collections import Counter
 
@@ -22,10 +21,10 @@ print(training_data)
 
 counter = Counter(training_data) # output a counter dictionary
 words = sorted(counter)  # get the ordered words list
-words_len = len(words)  # 67 words 
-words_order_map = dict(zip(words, range(words_len))) # {'word0': 0, 'word1':1}
+words_size = len(words)  # 67 words 
+words_order_map = dict(zip(words, range(words_size))) # {'word0': 0, 'word1':1}
 
-print('In training data, we have {} words in vocabulary'.format(words_len))
+print('In training data, we have {} words in corpus'.format(words_size))
 
 wordlabel = get_ch_label_vec(training_file, words_order_map) #convert txt to order
 
