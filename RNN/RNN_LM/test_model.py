@@ -41,9 +41,9 @@ with tf.Session() as sess:
                 onehot_pred = sess.run(pred, feed_dict={x: keys})
                 onehot_pred_index = int(tf.argmax(onehot_pred, 1).eval())
                 sentence = '%s%s'%(sentence, words[onehot_pred_index])
-                inputword = input_word[1: ]
-                inputword.append(onehot_pred_index)
-                print(sentence)            
+                input_word = input_word[1: ]
+                input_word.append(onehot_pred_index)
+            print(sentence)            
         except:
             print('I did not learn it well')
             break
