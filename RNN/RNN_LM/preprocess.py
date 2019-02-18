@@ -21,8 +21,8 @@ def get_ch_label(file):
 
     with open(file, 'rb') as f:
         for label in f:
-            labels = labels + label.decode('gb2312')
-
+#             print(u'{0}'.format(label))
+            labels = labels + label.decode('utf-8')
     return labels
 
 #------------------------ convert text file to vector list -------------------#
