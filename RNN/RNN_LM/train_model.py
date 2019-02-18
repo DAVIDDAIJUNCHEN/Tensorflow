@@ -17,7 +17,7 @@ from model import *
 save_dir = 'log/rnn_lm/'
 saver = tf.train.Saver(max_to_keep=1)
 
-training_iteration = 100000  # clairify the total epochs 
+training_iteration = 1000000  # clairify the total epochs 
 display_step = 1000
 
 start_time = time.time()
