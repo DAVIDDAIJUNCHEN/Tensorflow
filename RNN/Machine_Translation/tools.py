@@ -15,6 +15,7 @@ import numpy as np
 
 from tensorflow.python.platform import gfile
 
+
 #------------ create vocabulary and convert file folder to id folder ---------# 
 def create_dicts(data_dir, en_voc_filename, ch_voc_filename, from_data_dir, to_data_dir, voc_size):
     # make vocabulary file path
@@ -47,6 +48,7 @@ def create_dicts(data_dir, en_voc_filename, ch_voc_filename, from_data_dir, to_d
     if not os.path.exists(data_dir+'toids/'):
         os.makedirs(data_dir+'toids/')
     text_dir2id_dir(to_data_dir, data_dir+'toids/', ch_vocabulary, normalize_digits=True, Isch=True)
+
 
     
 #------------------  

@@ -21,4 +21,3 @@ voc_size = 40000
 
 create_dicts(data_dir, en_voc_filename, ch_voc_filename, from_data_dir, to_data_dir, voc_size)
 
-
