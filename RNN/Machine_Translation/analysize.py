@@ -8,19 +8,19 @@ Module task: plot lengths list of ids_file
 
 import matplotlib.pyplot as plt
 import matplotlib.mlab as mlab
+import numpy as np
 
 from tensorflow.python.platform import gfile
-from tools import *
-from data import *
+import tools
+import data
 
 # analysize #
-filesfrom, _ = getRawFileList(data_dir+'fromids/')
-filesto, _ = getRawFileList(data_dir+'toids/')
+filesfrom, _ = tools.getRawFileList(data.data_dir+'fromids/')
+filesto, _ = tools.getRawFileList(data.data_dir+'toids/')
     
 ids_from_file = filesfrom[0]
 ids_to_file = filesto[0]
     
-analysize_idsfiles(ids_from_file, ids_to_file, plot_histograms=True, plot_scatter=True)
 
 #---------------- Analysize the source and target ids files ------------------#
 def analysize_idsfiles(source_ids_file, target_ids_file, plot_histograms=True, plot_scatter=True):
@@ -73,4 +73,5 @@ def plot_scatter_lengths(title, x_title, y_title, x_lengths_list, y_lenghts_list
     plt.ylim(0, max(y_lenghts_list))
     plt.show()
     
-    
+analysize_idsfiles(ids_from_file, ids_to_file, plot_histograms=True, plot_scatter=True)
+
