@@ -57,7 +57,7 @@ def create_vocabulary(data_dir, voc_file, raw_data_dir, max_voc_size, Isch=False
     texts, _texts_size = get_ch_path_text(raw_data_dir, Isch, normalize_digits)
 
     print(texts[0], len(texts))
-    print('Number of rows: ', len(_texts_size), _texts_size)
+    print('Number of rows: ', len(_texts_size))
 
     all_words = []
     
@@ -76,7 +76,6 @@ def create_vocabulary(data_dir, voc_file, raw_data_dir, max_voc_size, Isch=False
         
         with gfile.GFile(voc_file, mode='w') as vocab_file:
             for w in _reverse_dict:
-                print(_reverse_dict[w])
                 vocab_file.write(_reverse_dict[w] + '\n')
     else:
         print('We had vocabulary! Go ahead!')
@@ -230,7 +229,7 @@ def text_dir2id_dir(raw_data_dir, id_dir, vocabulary, normalize_digits=True, Isc
         for text_file, name in zip(filepaths, filenames):
             id_file = id_dir + name
             text_file2ids_file(text_file, id_file, vocabulary, normalize_digits, Isch)
-            print('Text file: %s ==> Id file: %s ' % (text_file, id_file))
+            #print('Text file: %s ==> Id file: %s ' % (text_file, id_file))
     
 #---------------- convert single data file to ids file -----------------------# 
 def text_file2ids_file(origin_file, target_file, vocabulary, normalize_digits=True, Isch=False):
@@ -242,7 +241,6 @@ def text_file2ids_file(origin_file, target_file, vocabulary, normalize_digits=Tr
             with gfile.GFile(target_file, 'w') as ids_file:
 
                 for line in data_file:
-                    print(line)
                     token_ids = sentence2ids(line, vocabulary, normalize_digits, Isch)
                     ids_file.write(' '.join([str(tok) for tok in token_ids]) + '\n')
 
@@ -260,4 +258,14 @@ def sentence2ids(sentence, vocabulary, normalize_digits=True, Isch=False):
     ids_sentence = [vocabulary.get(word, UNK_ID) for word in notoken]
 
     return ids_sentence
-        
+
+#-------------- convert id to text -------------------------------------------#
+def ids2texts(sentence_indices, reverse_vocab):
+    texts = []
+
+    for index in sentence_indices:
+        texts.append(reverse_vocab[index])
+
+    return texts
+
+
